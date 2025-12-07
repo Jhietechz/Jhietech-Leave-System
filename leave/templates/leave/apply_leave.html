@@ -1,0 +1,371 @@
+{% extends "leave/base.html" %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<style>
+    /* === Drag & Drop Upload Styles === */
+
+    .drop-area {
+        border: 2px dashed #0d6efd;
+        padding: 40px;
+        border-radius: 12px;
+        background: #f8f9fa;
+        transition: 0.25s ease;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .drop-area.dragover {
+        background: #e7f0ff;
+        border-color: #0a58ca;
+        transform: scale(1.02);
+    }
+
+    /* Preview grid */
+    .preview-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    /* Preview item */
+    .preview-item {
+        width: 120px;
+        text-align: center;
+        position: relative;
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    /* Delete icon */
+    .delete-file {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #dc3545;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 50%;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 5;
+    }
+
+    /* Hide Django default labels */
+    form label {
+        display: none !important;
+    }
+
+    /* Keep custom labels visible */
+    .form-label {
+        display: block !important;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+
+        <!-- Wizard Card -->
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+            <!-- Header -->
+            <div class="card-header bg-primary text-white py-4">
+                <h3 class="mb-0">
+                    <i class="bi bi-calendar2-check"></i> Apply for Leave
+                </h3>
+            </div>
+
+            <div class="card-body p-4">
+
+                <!-- Info Section -->
+                <div class="alert alert-info shadow-sm rounded-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-building"></i> Department:</strong>
+                            {{ user_department|default:"Not Assigned" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-person-badge"></i> Manager:</strong>
+                            {{ manager_name }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORM START -->
+                <form id="leave-form" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-4">
+
+                        <!-- Total Days Display -->
+                        <div class="col-md-12 mb-2">
+                            <div id="total-days-display" class="alert alert-secondary py-2 px-3" style="display:none;">
+                                <strong>Days to Apply:</strong> <span id="total-days-value">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Leave Type -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Leave Type</label>
+                            {{ form.leave_type|add_class:"form-select"|attr:"required" }}
+                            <div id="remaining-days-display" class="form-text"></div>
+                        
+                            <div id="other-leave-type-field" class="mt-2" style="display:none;">
+                                <label class="form-label fw-semibold">Specify Other Leave Type</label>
+                                {{ form.other_leave_type|add_class:"form-control" }}
+                            </div>
+                        </div>
+                       
+                        <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            const leaveSelect = document.getElementById("id_leave_type");
+                            const remainingDaysDisplay = document.getElementById("remaining-days-display");
+                        
+                            function updateRemainingDays() {
+                                const selectedOption = leaveSelect.options[leaveSelect.selectedIndex];
+                                const remainingDays = selectedOption.dataset.remainingDays;
+                        
+                                if (remainingDays) {
+                                    remainingDaysDisplay.textContent = `Remaining days: ${remainingDays}`;
+                                } else {
+                                    remainingDaysDisplay.textContent = "";
+                                }
+                            }
+                        
+                            if (leaveSelect) {
+                                leaveSelect.addEventListener("change", updateRemainingDays);
+                                updateRemainingDays();
+                            }
+                        });
+                        </script>
+
+                        <!-- Start Date -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Start Date</label>
+                            {{ form.start_date|add_class:"form-control"|attr:"min=today" }}
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">End Date</label>
+                            {{ form.end_date|add_class:"form-control"|attr:"min=today" }}
+                        </div>
+
+                        <!-- Drag & Drop Upload -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Attachments <span
+                                    class="font-size-sm"><i>(optional)</i></span></label>
+
+                            <div id="drop-area" class="drop-area">
+                                <i class="fa fa-cloud-upload-alt fa-3x text-primary mb-2"></i>
+                                <p class="mb-1">Drag & Drop files here</p>
+                                <p class="small text-muted">or click to browse</p>
+
+                                {{ form.attachment|add_class:"d-none" }}
+                            </div>
+
+                            <!-- File preview grid -->
+                            <div id="preview-grid" class="preview-grid mt-3"></div>
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Reason</label>
+                            {{ form.reason|add_class:"form-control" }}
+                        </div>
+
+                    </div>
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left-circle"></i> Cancel
+                        </a>
+
+                        <button class="btn btn-success px-4" type="submit">
+                            <i class="bi bi-check2-circle"></i> Submit Request
+                        </button>
+                    </div>
+
+
+                </form>
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Please correct the errors below:</strong>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- === JavaScript === -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. SELECT ELEMENTS
+        const leaveSelect = document.getElementById("id_leave_type");
+        const otherFieldDiv = document.getElementById("other-leave-type-field");
+        const otherInput = document.getElementById("id_other_leave_type");
+
+        // 2. DEFINE TOGGLE FUNCTION
+        function toggleOther() {
+            // Get the text of the currently selected option (e.g., "Annual", "Other")
+            const selectedText = leaveSelect.options[leaveSelect.selectedIndex].text;
+            
+            // Check if "Other" is in the text (Case insensitive)
+            if (selectedText.toLowerCase().includes("other")) {
+                otherFieldDiv.style.display = "block"; // Show the field
+                if(otherInput) otherInput.required = true; // Make it required
+            } else {
+                otherFieldDiv.style.display = "none";  // Hide the field
+                if(otherInput) {
+                    otherInput.required = false;       // Remove required
+                    otherInput.value = "";             // Clear the text
+                }
+            }
+        }
+
+        // 3. ATTACH EVENTS
+        if (leaveSelect && otherFieldDiv) {
+            leaveSelect.addEventListener("change", toggleOther);
+            // Run once on load in case "Other" is already selected (e.g. after validation error)
+            toggleOther();
+        } else {
+            console.error("Could not find leave_type dropdown or other-field div.");
+        }
+
+
+        /* ========= Drag & Drop Logic (Kept Existing) ========= */
+        const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("id_attachment");
+        const previewGrid = document.getElementById("preview-grid");
+        let filesList = [];
+
+        if(dropArea) {
+            ["dragenter", "dragover", "dragleave", "drop"].forEach(evt => {
+                dropArea.addEventListener(evt, e => e.preventDefault());
+            });
+            ["dragenter", "dragover"].forEach(evt => {
+                dropArea.addEventListener(evt, () => dropArea.classList.add("dragover"));
+            });
+            ["dragleave", "drop"].forEach(evt => {
+                dropArea.addEventListener(evt, () => dropArea.classList.remove("dragover"));
+            });
+
+            dropArea.addEventListener("drop", e => handleFiles(e.dataTransfer.files));
+            dropArea.addEventListener("click", () => fileInput.click());
+            fileInput.addEventListener("change", () => handleFiles(fileInput.files));
+        }
+
+        function handleFiles(selectedFiles) {
+            for (let f of selectedFiles) filesList.push(f);
+            updatePreview();
+        }
+
+        function updatePreview() {
+            previewGrid.innerHTML = "";
+            filesList.forEach((file, index) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "preview-item";
+                
+                const del = document.createElement("div");
+                del.className = "delete-file";
+                del.innerHTML = "✖";
+                del.onclick = () => { filesList.splice(index, 1); updatePreview(); };
+                wrapper.appendChild(del);
+
+                if (file.type.startsWith("image/")) {
+                    const img = document.createElement("img");
+                    img.src = URL.createObjectURL(file);
+                    wrapper.appendChild(img);
+                } else {
+                    wrapper.innerHTML += `<i class="fa fa-file-alt fa-3x text-secondary"></i>`;
+                }
+                
+                const name = document.createElement("div");
+                name.className = "small text-muted mt-1";
+                name.innerText = file.name;
+                wrapper.appendChild(name);
+                previewGrid.appendChild(wrapper);
+            });
+            const dt = new DataTransfer();
+            filesList.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+        }
+
+
+        // === Total Days Calculation and Date Validation ===
+        const startDateInput = document.getElementById("id_start_date");
+        const endDateInput = document.getElementById("id_end_date");
+        const totalDaysDisplay = document.getElementById("total-days-display");
+        const totalDaysValue = document.getElementById("total-days-value");
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
+        // Set min attribute for both date inputs to today
+        startDateInput.setAttribute('min', today);
+        endDateInput.setAttribute('min', today);
+
+        function updateTotalDays() {
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
+
+            // Clear previous error styles
+            startDateInput.classList.remove('is-invalid');
+            endDateInput.classList.remove('is-invalid');
+            totalDaysDisplay.classList.remove('alert-danger');
+            totalDaysDisplay.classList.add('alert-secondary'); // Reset to default
+
+            if (startVal && endVal) {
+                const start = new Date(startVal);
+                const end = new Date(endVal);
+
+                if (isNaN(start) || isNaN(end)) {
+                    totalDaysDisplay.style.display = "none";
+                    return;
+                }
+
+                // Validate date order
+                if (end < start) {
+                    totalDaysValue.textContent = "Invalid Date Range";
+                    totalDaysDisplay.style.display = "block";
+                    totalDaysDisplay.classList.add('alert-danger');
+                    totalDaysDisplay.classList.remove('alert-secondary');
+                    startDateInput.classList.add('is-invalid');
+                    endDateInput.classList.add('is-invalid');
+                    return; // Stop further calculation if invalid
+                }
+
+                // Calculate days (inclusive)
+                const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                totalDaysValue.textContent = diff;
+                totalDaysDisplay.style.display = "block";
+
+            } else {
+                totalDaysDisplay.style.display = "none";
+            }
+        }
+
+        // Event listeners for date changes
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener("change", () => {
+                endDateInput.setAttribute('min', startDateInput.value); // End date cannot be before start date
+                updateTotalDays();
+            });
+            endDateInput.addEventListener("change", () => {
+                startDateInput.setAttribute('max', endDateInput.value); // Start date cannot be after end date
+                updateTotalDays();
+            });
+            updateTotalDays(); // Initial call to set display and min/max
+        }
+    });
+</script>
+
+{% endblock %}

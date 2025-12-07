@@ -1,0 +1,22 @@
+{% extends "leave/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Fix Missing Leave Allowances and Trackers</h1>
+</div>
+
+<div class="alert alert-warning" role="alert">
+    <strong>Warning:</strong> This action will check all users and all active leave types to ensure that `UserLeaveAllowance` and `UserLeaveTracker` records exist for them. Missing records will be created. This operation cannot be undone easily.
+</div>
+
+<p>Click the button below to initiate the fix for all missing leave allowances and trackers across the system.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-tools"></i> Fix Missing Allowances Now
+    </button>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% endblock %}

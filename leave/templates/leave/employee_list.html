@@ -1,0 +1,48 @@
+{% extends "leave/base.html" %}
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-info text-white">
+        <h4>Employee List</h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Profile</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role/Position</th>
+                    <th>Department</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr>
+                    <td>
+                        {% if emp.profile_photo %}
+                            <img src="{{ emp.profile_photo.url }}" class="rounded-circle" style="width:32px; height:32px; object-fit:cover;">
+                        {% else %}
+                            <i class="bi bi-person-circle fs-4"></i>
+                        {% endif %}
+                    </td>
+                    <td>{{ emp.user.username }}</td>
+                    <td>{{ emp.user.first_name }} {{ emp.user.last_name }}</td>
+                    <td>{{ emp.user.email }}</td>
+                    <td>{{ emp.role }}</td>
+                    <td>{{ emp.department }}</td>
+                    <td>
+                        <a href="{% url 'edit_employment' emp.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No employees found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "leave/base.html" %}
+{% block content %}
+
+<style>
+    .profile-card {
+        border-radius: 14px;
+        overflow: hidden;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #0d6efd, #4dabf7);
+        color: white;
+    }
+
+    .profile-photo {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        margin-right: 20px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .info-value {
+        color: #212529;
+        font-size: 0.97rem;
+    }
+
+    .profile-section {
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .profile-section:last-child {
+        border-bottom: none;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-lg profile-card">
+
+            <!-- HEADER -->
+            <div class="profile-header">
+                {% if profile.profile_photo %}
+                    <img src="{{ profile.profile_photo.url }}" class="profile-photo" alt="Profile Photo">
+                {% else %}
+                    <div class="d-flex justify-content-center align-items-center bg-white rounded-circle me-3"
+                        style="width:75px; height:75px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                        <i class="bi bi-person-fill fs-1 text-primary"></i>
+                    </div>
+                {% endif %}
+
+                <div>
+                    <h3 class="mb-0 fw-bold">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <small class="text-light">{{ profile.role }} — {{ profile.department }}</small>
+                </div>
+            </div>
+
+            <!-- BODY -->
+            <div class="card-body p-4">
+
+                <div class="row gy-3">
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-person-badge"></i> Username</div>
+                        <div class="info-value">{{ user.username }}</div>
+                    </div>
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-envelope"></i> Email</div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-gender-ambiguous"></i> Gender</div>
+                        <div class="info-value">{{ profile.gender }}</div>
+                    </div>
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-telephone"></i> Phone</div>
+                        <div class="info-value">{{ profile.phone_number }}</div>
+                    </div>
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-briefcase"></i> Position / Role</div>
+                        <div class="info-value">{{ profile.role }}</div>
+                    </div>
+
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-building"></i> Department</div>
+                        <div class="info-value">{{ profile.department|default:"Not Assigned" }}</div>
+                    </div>
+<div>
+                    <div class="col-md-6 profile-section">
+                        <div class="info-label"><i class="bi bi-passport"></i>Employee ID</div>
+                        <div class="info-value">{{ profile.employee_id }}</div>
+</div>
+                </div>
+
+                <!-- Edit button -->
+                <div class="mt-4 text-end">
+                    <a href="{% url 'edit_profile' %}" class="btn btn-warning px-4 me-2">
+                        <i class="bi bi-pencil-square"></i> Edit Profile
+                    </a>
+                    <a href="{% url 'delete_account' user.id %}" class="btn btn-danger px-4">
+                        <i class="bi bi-trash"></i> Delete Account
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends "leave/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+/* ===== Badges ===== */
+.badge-leave {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.badge-annual { background:#0d6efd; color:white; }
+.badge-sick { background:#20c997; color:white; }
+.badge-maternity { background:#e83e8c; color:white; }
+.badge-paternity { background:#6f42c1; color:white; }
+.badge-other { background:#6c757d; color:white; }
+
+/* Card styling */
+.req-card {
+    transition: 0.25s ease;
+    cursor: pointer;
+}
+.req-card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 18px rgba(0,0,0,0.12);
+}
+
+/* Summary header */
+.req-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Attachment thumbnail */
+.thumb-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+</style>
+
+
+<h2 class="mb-4">Pending Approvals ({{ user.profile.role }} Panel)</h2>
+
+
+<div class="row g-3">
+    {% for req in pending_requests %}
+    <div class="col-md-6">
+
+        <!-- COLLAPSIBLE CARD -->
+        <div class="card req-card shadow-sm border-0 rounded-4"
+             data-bs-toggle="collapse"
+             data-bs-target="#collapseReq{{ req.id }}"
+             aria-expanded="false">
+
+            <div class="card-body">
+
+                <!-- Summary line (always visible) -->
+                <div class="req-summary">
+                    <div class="d-flex align-items-center">
+
+                        {% if req.user.profile.profile_photo %}
+                        <img src="{{ req.user.profile.profile_photo.url }}"
+                             class="rounded-circle me-3"
+                             style="width:50px;height:50px;object-fit:cover;">
+                        {% else %}
+                        <i class="bi bi-person-circle fs-1 me-3"></i>
+                        {% endif %}
+
+                        <div>
+                            <h6 class="mb-0">{{ req.user.first_name }} {{ req.user.last_name }}</h6>
+                            <small class="text-muted">{{ req.user.profile.employee_id }}</small>
+                        </div>
+                    </div>
+
+                    <i class="bi bi-chevron-down fs-4 text-primary"></i>
+                </div>
+
+                <!-- COLLAPSIBLE DETAILS -->
+                <div id="collapseReq{{ req.id }}" class="collapse mt-3">
+
+                    {% with type=req.leave_type.name|lower %}
+                    <span class="badge badge-leave 
+                        {% if "annual" in type %}badge-annual
+                        {% elif "sick" in type %}badge-sick
+                        {% elif "maternity" in type %}badge-maternity
+                        {% elif "paternity" in type %}badge-paternity
+                        {% else %}badge-other{% endif %}
+                    ">
+                        {{ req.leave_type.name }}
+                    </span>
+                    {% endwith %}
+
+                    <p class="mt-2 mb-1">
+                        <i class="bi bi-calendar-week"></i>
+                        {{ req.start_date }} → {{ req.end_date }}
+                    </p>
+
+                    <p class="fw-bold mb-2">{{ req.total_days }} day(s)</p>
+
+                    <!-- Reason -->
+                    <div class="mb-2">
+                        <strong>Reason:</strong>
+                        <p class="mb-1">{{ req.reason }}</p>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        {% if req.attachments.all %}
+                            {% for att in req.attachments.all %}
+                                {% with f=att.file.url|lower %}
+                                    {% if ".pdf" in f %}
+                                        <a href="{{ att.file.url }}" target="_blank"
+                                           class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </a>
+                                    {% elif ".jpg" in f or ".jpeg" in f or ".png" in f %}
+                                        <a href="{{ att.file.url }}" target="_blank">
+                                            <img src="{{ att.file.url }}" class="thumb-img">
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ att.file.url }}" target="_blank"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-paperclip"></i>
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted small">No attachments</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Review Button -->
+                    <button class="btn btn-primary w-100 mt-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#reviewModal{{ req.id }}"
+                            onclick="event.stopPropagation();">
+                        Review Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ REVIEW MODAL ============ -->
+    <div class="modal fade" id="reviewModal{{ req.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clipboard-check"></i> Review Leave Request
+                    </h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <h5>{{ req.user.first_name }} {{ req.user.last_name }}
+                        <small class="text-muted">({{ req.user.profile.employee_id }})</small>
+                    </h5>
+
+                    <p><b>Department:</b> {{ req.user.profile.department }}</p>
+                    <p><b>Leave Type:</b> {{ req.leave_type.name }}</p>
+
+                    {% if req.custom_leave_type %}
+                        <p><b>Custom Type:</b> {{ req.custom_leave_type }}</p>
+                    {% endif %}
+
+                    <p><b>Dates:</b> {{ req.start_date }} → {{ req.end_date }}</p>
+                    <p><b>Days:</b> {{ req.total_days }}</p>
+
+                    <hr>
+
+                    <p><b>Reason:</b></p>
+                    <div class="alert alert-light border">{{ req.reason }}</div>
+
+                    <p><b>Attachments:</b></p>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if req.attachments.all %}
+                            {% for att in req.attachments.all %}
+                                {% with f=att.file.url|lower %}
+                                    {% if ".pdf" in f %}
+                                        <a href="{{ att.file.url }}" target="_blank"
+                                           class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
+                                    {% elif ".jpg" in f or ".jpeg" in f or ".png" in f %}
+                                        <a href="{{ att.file.url }}" target="_blank">
+                                            <img src="{{ att.file.url }}" class="thumb-img">
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ att.file.url }}" target="_blank"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-paperclip"></i> File
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-between">
+                    <form method="POST" action="{% url 'approve_request' req.id %}" onsubmit="return handleFormSubmit(this);">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success px-4" id="approveBtn{{ req.id }}">
+                            <i class="bi bi-check2-circle"></i> Approve
+                        </button>
+                    </form>
+                
+                    <form method="POST" action="{% url 'reject_request' req.id %}" onsubmit="return handleFormSubmit(this);">
+                        {% csrf_token %}
+                        <div class="rejection-reason-container" id="rejectionReasonContainer{{ req.id }}" style="display: none;">
+                            <textarea name="rejection_reason" class="form-control" placeholder="Please provide a reason for rejection..." required></textarea>
+                        </div>
+                        <button type="button" class="btn btn-danger px-4" id="rejectBtn{{ req.id }}" onclick="handleRejectClick({{ req.id }})">
+                            <i class="bi bi-x-circle"></i> Reject
+                        </button>
+                        <button type="submit" class="btn btn-danger px-4" id="confirmRejectBtn{{ req.id }}" style="display: none;">
+                            Confirm Rejection
+                        </button>
+                    </form>
+                </div>
+                ...
+                <script>
+                function handleRejectClick(reqId) {
+                    var reasonContainer = document.getElementById('rejectionReasonContainer' + reqId);
+                    var rejectBtn = document.getElementById('rejectBtn' + reqId);
+                    var confirmRejectBtn = document.getElementById('confirmRejectBtn' + reqId);
+                
+                    if (reasonContainer.style.display === 'none') {
+                        reasonContainer.style.display = 'block';
+                        rejectBtn.style.display = 'none';
+                        confirmRejectBtn.style.display = 'block';
+                    }
+                }
+                
+                function handleFormSubmit(form) {
+                    var approveBtn = form.querySelector('[id^="approveBtn"]');
+                    var rejectBtn = form.querySelector('[id^="rejectBtn"]');
+                    var confirmRejectBtn = form.querySelector('[id^="confirmRejectBtn"]');
+                
+                    if (approveBtn) {
+                        approveBtn.disabled = true;
+                        approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                    }
+                    if (rejectBtn) {
+                        rejectBtn.disabled = true;
+                    }
+                    if (confirmRejectBtn) {
+                        confirmRejectBtn.disabled = true;
+                        confirmRejectBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                    }
+                
+                    return true; 
+                }
+                </script>
+                
+            </div>
+        </div>
+    </div>
+
+    {% empty %}
+    <div class="col-12 text-center py-4">
+        <div class="alert alert-secondary">No pending requests for your review.</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

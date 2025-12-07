@@ -1,0 +1,59 @@
+{% extends "leave/base.html" %}
+{% block content %}
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Edit Employment Details for {{ profile.user.first_name }} {{ profile.user.last_name }}</h5>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="mb-3">
+                    {{ form.role.label_tag }}
+                    <select name="role" id="id_role" class="form-control" onchange="toggleDepartmentDropdown()">
+                        <option value="">Select Role/Position</option>
+                        <option value="Staff" {% if profile.role == "Staff" %}selected{% endif %}>Staff</option>
+                        <option value="Line Manager" {% if profile.role == "Line Manager" %}selected{% endif %}>Line Manager</option>
+                        <option value="COO" {% if profile.role == "COO" %}selected{% endif %}>COO</option>
+                        <option value="CEO" {% if profile.role == "CEO" %}selected{% endif %}>CEO</option>
+                        <option value="Admin" {% if profile.role == "Admin" %}selected{% endif %}>Admin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    {{ form.department.label_tag }}
+                    <select name="department" id="id_department" class="form-control">
+                        <option value="">Select Department</option>
+                        <option value="Human Resource & Administration" {% if profile.department == "Human Resource & Administration" %}selected{% endif %}>Human Resource & Administration</option>
+                        <option value="Information Technology" {% if profile.department == "Information Technology" %}selected{% endif %}>Information Technology</option>
+                        <option value="Marketing Advocacy & Communication" {% if profile.department == "Marketing Advocacy & Communication" %}selected{% endif %}>Marketing Advocacy & Communication</option>
+                        <option value="Other" {% if profile.department == "Other" %}selected{% endif %}>Other</option>
+                        <option value="Scheme" {% if profile.department == "Scheme" %}selected{% endif %}>Scheme</option>
+                        <option value="HR" {% if profile.department == "HR" %}selected{% endif %}>HR</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+function toggleDepartmentDropdown() {
+    var role = document.getElementById('id_role').value;
+    var dept = document.getElementById('id_department');
+    if (role === 'Staff' || role === 'Line Manager') {
+        dept.disabled = false;
+    } else {
+        dept.value = '';
+        dept.disabled = true;
+    }
+}
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleDepartmentDropdown();
+});
+</script>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Leave Approval Letter</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .letter { max-width: 600px; margin: auto; padding: 2em; border: 1px solid #eee; }
+        h2 { color: #0d6efd; }
+    </style>
+</head>
+<body>
+    <div class="letter">
+        <h2>Leave Approval Letter</h2>
+        <p>Dear {{ leave_request.user.first_name }} {{ leave_request.user.last_name }},</p>
+        <p>Your leave request for <strong>{{ leave_request.leave_type.name }}</strong> from <strong>{{ leave_request.start_date }}</strong> to <strong>{{ leave_request.end_date }}</strong> has been <strong>approved</strong>.</p>
+        <p>Approved by CEO on {{ leave_request.ceo_approval_date|date:"M d, Y" }}.</p>
+        <p>Enjoy your leave!</p>
+        <p>Regards,<br>Jhietech HR Team</p>
+    </div>
+</body>
+</html>

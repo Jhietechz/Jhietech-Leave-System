@@ -1,0 +1,267 @@
+{% extends "leave/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<style>
+    .input-icon {
+        position: relative;
+    }
+    .input-icon i {
+        position: absolute;
+        top: 60%;
+        left: 12px;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 18px;
+    }
+    .input-with-icon {
+        padding-left: 40px !important;
+    }
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper .icon {
+    position: absolute;
+    left: 15px;
+    top: 40%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #777;
+}
+
+.input-wrapper input {
+    padding-left: 35px !important; /* ensures text doesn't overlap icon */
+}
+
+    /* Password Strength Meter */
+    #password-strength {
+        height: 6px;
+        border-radius: 4px;
+        margin-top: 4px;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-white text-center py-4">
+                <h3 class="fw-bold mb-0">Create an Account</h3>
+            </div>
+
+            <div class="card-body">
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- COLLAPSIBLE FORM -->
+                <div class="accordion" id="signupAccordion">
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-semibold" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#signupForm"
+                                aria-expanded="true">
+                                Registration Details
+                            </button>
+                        </h2>
+
+                        <div id="signupForm" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+
+                                <form method="POST">
+                                    {% csrf_token %}
+
+<div class="row g-3">
+
+    <!-- First Name -->
+    <div class="col-md-6 input-icon">
+        <i class="bi bi-person"></i>
+        {{ form.first_name|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_first_name").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Last Name -->
+    <div class="col-md-6 input-icon">
+        <i class="bi bi-people"></i>
+        {{ form.last_name|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_last_name").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Username -->
+    <div class="col-md-6 input-wrapper">
+        <i class="bi bi-person-badge mb-1 icon"></i>
+        {{ form.username|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_username").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-6 input-wrapper">
+        <i class="bi bi-envelope icon"></i>
+        {{ form.email|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_email").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Password -->
+    <div class="col-md-6">
+        <i class="bi bi-lock" style="position: relative;transform: translate(5px, 60px);display: flex;z-index: 1;"></i>
+        <div class="position-relative">
+            {{ form.password|as_crispy_field }}
+            <i class="bi bi-eye-slash password-toggle"
+               data-target="id_password"
+               style="position:absolute; right:10px; top:75%; transform:translateY(-50%); cursor:pointer;"></i>
+        </div>
+        <div id="password-strength"></div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const pwd = document.querySelector("#id_password");
+                pwd.classList.add("input-with-icon");
+
+                const strengthBar = document.querySelector("#password-strength");
+                pwd.addEventListener("input", () => {
+                    const val = pwd.value;
+                    let strength = 0;
+
+                    // Strength logic
+                    if (val.length >= 6) strength++;
+                    if (/[A-Z]/.test(val)) strength++;
+                    if (/[0-9]/.test(val)) strength++;
+                    if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+                    strengthBar.style.width = ((strength / 4) * 100) + "%";
+
+                    const colors = ["red", "orange", "gold", "green"];
+                    strengthBar.style.background = colors[strength - 1] || "transparent";
+                });
+            });
+        </script>
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="col-md-6">
+        <i class="bi bi-lock-fill" style="position: relative;transform: translate(5px, 60px);display: flex;z-index: 1;"></i>
+        <div class="position-relative">
+            {{ form.confirm_password|as_crispy_field }}
+            <i class="bi bi-eye-slash password-toggle"
+               data-target="id_confirm_password"
+               style="position:absolute; right:10px; top:75%; transform:translateY(-50%); cursor:pointer;"></i>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_confirm_password").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- ID Number -->
+    <div class="col-md-6 input-icon">
+        <i class="bi bi-card-text"></i>
+        {{ form.id_number|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_id_number").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Phone Number -->
+    <div class="col-md-6 input-icon">
+        <i class="bi bi-phone"></i>
+        {{ form.phone_number|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_phone_number").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+    <!-- Gender -->
+    <div class="col-md-6 input-icon">
+        <i class="bi bi-gender-ambiguous"></i>
+        {{ form.gender|as_crispy_field }}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector("#id_gender").classList.add("input-with-icon");
+            });
+        </script>
+    </div>
+
+</div>
+
+
+                                    <button class="btn btn-primary w-100 mt-4 py-2 fw-semibold" type="submit">
+                                        Sign Up
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card-footer text-center bg-white py-3">
+                <small>Already have an account?
+                    <a href="{% url 'login' %}" class="fw-semibold">Log In</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE IMAGE -->
+    <div class="col-md-5 d-none d-md-block">
+        <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center">
+            <img src="{% static 'images/jhietech.png' %}" alt="Register" class="img-fluid mb-3" style="max-height: 220px;">
+            <h5 class="text-primary fw-bold">Welcome to Jhietech Leave System</h5>
+            <p class="text-muted">Register to manage your leave requests, track balances, and stay connected with your team.</p>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggles = document.querySelectorAll(".password-toggle");
+
+    toggles.forEach(icon => {
+        icon.addEventListener("click", function () {
+            const target = document.getElementById(this.getAttribute("data-target"));
+
+            if (target.type === "password") {
+                target.type = "text";
+                this.classList.remove("bi-eye-slash");
+                this.classList.add("bi-eye");
+            } else {
+                target.type = "password";
+                this.classList.add("bi-eye-slash");
+                this.classList.remove("bi-eye");
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

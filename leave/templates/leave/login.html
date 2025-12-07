@@ -1,0 +1,111 @@
+{% extends "leave/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+    .info-box {
+        background: linear-gradient(135deg, #0d6efd 0%, #0bb7dd 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: fadeIn 0.7s ease-in-out;
+    }
+
+    .info-box h3 {
+        font-weight: 700;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .system-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .system-feature i {
+        font-size: 18px;
+    }
+</style>
+
+<div class="row justify-content-start mt-4">
+    <!-- left side: Login form -->
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-white text-center">
+                <h3 class="fw-bold">Login</h3>
+            </div>
+
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+
+                    <button class="btn btn-primary w-100 mt-3" type="submit">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'password_reset_request' %}">Forgot Password?</a>
+                </div>
+            </div>
+
+            <div class="card-footer text-center bg-light">
+                <small>
+                    Need an account? 
+                    <a href="{% url 'register' %}"><strong>Sign Up</strong></a>
+                </small>
+            </div>
+        </div>
+    </div>
+    <!-- Left side: Info -->
+    <div class="col-md-5 mb-4">
+        <div class="info-box shadow-lg">
+            <h3 class="mb-3"><i class="bi bi-calendar2-check"></i> Leave Management System</h3>
+
+            <p class="mb-3">
+                Welcome to the HR Online Leave Portal. 
+                Please log in using your assigned credentials to access your dashboard,
+                request leave, view balances, and track your approval workflow.
+            </p>
+
+            <div class="mt-3">
+                <div class="system-feature">
+                    <i class="bi bi-person-check-fill"></i>
+                    <span>Secure staff authentication</span>
+                </div>
+
+                <div class="system-feature">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>Automated approval workflow (Manager → COO → CEO)</span>
+                </div>
+
+                <div class="system-feature">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Check previous requests & approval history</span>
+                </div>
+
+                <div class="system-feature">
+                    <i class="bi bi-file-medical"></i>
+                    <span>Upload supporting documents for faster review</span>
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <p class="small mb-0">
+                <strong>Tip:</strong> Use the <em>Forgot Password</em> link if you cannot remember your login details.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'leave/base.html' %}
+
+{% block title %}My Notifications{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Notifications</h2>
+        {% if notifications %}
+            <a href="{% url 'mark_all_notifications_as_read' %}" class="btn btn-primary btn-sm">Mark all as read</a>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+        <div class="list-group">
+            {% for notification in notifications %}
+                <a href="{% url 'mark_notification_as_read' notification.id %}" 
+                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center 
+                          {% if not notification.is_read %}bg-light fw-bold{% endif %}">
+                    <span>
+                        <i class="bi bi-bell-fill me-2 text-primary"></i>
+                        {{ notification.message }}
+                    </span>
+                    <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4" role="alert">
+            You have no new notifications.
+        </div>
+    {% endif %}
+
+    {% if read_notifications %}
+    <div class="mt-4">
+        <p>
+            <a class="btn btn-secondary btn-sm" data-bs-toggle="collapse" href="#readNotifications" role="button" aria-expanded="false" aria-controls="readNotifications">
+                Previously Read
+            </a>
+        </p>
+        <div class="collapse" id="readNotifications">
+            <div class="list-group">
+                {% for notification in read_notifications %}
+                    <a href="{{ notification.link | default:'#' }}" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-check-circle me-2 text-success"></i>
+                            {{ notification.message }}
+                        </span>
+                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
