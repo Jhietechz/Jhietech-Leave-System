@@ -129,7 +129,16 @@ def generate_approval_letter(leave_request):
 @login_required
 def apply_leave(request):
     user_profile = request.user.profile
-    leave_trackers = UserLeaveTracker.objects.filter(user=request.user).select_related('leave_type')
+    
+    # Correctly filter leave types and trackers based on user's gender
+    user_gender = user_profile.gender
+    applicable_leave_types = LeaveType.objects.filter(is_active=True).filter(
+        models.Q(gender='A') | models.Q(gender=user_gender)
+    )
+    leave_trackers = UserLeaveTracker.objects.filter(
+        user=request.user,
+        leave_type__in=applicable_leave_types
+    ).select_related('leave_type')
 
     if user_profile.role == 'Staff' and not user_profile.department:
         messages.error(request, "You must be assigned to a Department before applying. Please contact Admin.")
@@ -577,5 +586,50 @@ def mark_all_as_read(request):
     return redirect('notifications')
 
 
+@login_required
+def leave_records(request):
+    # Ensure only authorized roles can access this page
+    if request.user.profile.role == 'Staff':
+        messages.warning(request, "You are not authorized to view this page.")
+        return redirect('dashboard')
 
+    leave_requests = LeaveRequest.objects.select_related('user__profile', 'leave_type').order_by('-created_at')
 
+    # Filtering logic
+    status_filter = request.GET.get('status')
+    employee_filter = request.GET.get('employee')
+
+    if status_filter:
+        leave_requests = leave_requests.filter(status=status_filter)
+    
+    if employee_filter:
+        leave_requests = leave_requests.filter(
+            models.Q(user__first_name__icontains=employee_filter) |
+            models.Q(user__last_name__icontains=employee_filter)
+        )
+
+    context = {
+        'leave_requests': leave_requests,
+        'profile': request.user.profile,
+    }
+    return render(request, 'leave/leave_records.html', context)
+
+@login_required
+def leave_request_detail(request, req_id):
+    # Ensure only authorized roles can access this page
+    if request.user.profile.role == 'Staff':
+        messages.warning(request, "You are not authorized to view this page.")
+        return redirect('dashboard')
+
+    leave_request = get_object_or_404(
+        LeaveRequest.objects.select_related(
+            'user__profile', 'leave_type'
+        ).prefetch_related('attachments'),
+        id=req_id
+    )
+
+    context = {
+        'leave_request': leave_request,
+        'profile': request.user.profile,
+    }
+    return render(request, 'leave/leave_request_detail.html', context)

@@ -9,6 +9,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(template_name='leave/logout.html'), name='logout'),
     path('apply/', leave_views.apply_leave, name='apply_leave'),
     path('approvals/', leave_views.approval_dashboard, name='approval_dashboard'),
+    path('records/', leave_views.leave_records, name='leave_records'),
+    path('records/<int:req_id>/', leave_views.leave_request_detail, name='leave_request_detail'),
     path('staff/', leave_views.employee_list, name='employee_list'),
     path('staff/edit/<int:id>/', leave_views.edit_staff, name='edit_staff'),
     path('profile/', leave_views.profile_view, name='profile'),

@@ -1,0 +1,109 @@
+{% extends 'leave/base.html' %}
+{% block title %}Leave Request Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Leave Request #{{ leave_request.id }}</h4>
+                    <span class="badge 
+                        {% if leave_request.status == 'Pending' %}bg-warning
+                        {% elif leave_request.status == 'Approved' %}bg-success
+                        {% elif leave_request.status == 'Rejected' %}bg-danger
+                        {% endif %}">
+                        {{ leave_request.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Employee Details</h5>
+                            <p><strong>Name:</strong> {{ leave_request.user.get_full_name }}</p>
+                            <p><strong>Department:</strong> {{ leave_request.user.profile.department|default:"N/A" }}</p>
+                            <p><strong>Role:</strong> {{ leave_request.user.profile.role }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Leave Details</h5>
+                            <p><strong>Leave Type:</strong> 
+                                {% if leave_request.leave_type.name|lower == 'other' %}
+                                    {{ leave_request.other_leave_type|default:"Other (Not Specified)" }}
+                                {% else %}
+                                    {{ leave_request.leave_type.name }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Dates:</strong> {{ leave_request.start_date|date:"d M, Y" }} to {{ leave_request.end_date|date:"d M, Y" }}</p>
+                            <p><strong>Total Days:</strong> {{ leave_request.total_days }}</p>
+                            <p><strong>Date Applied:</strong> {{ leave_request.created_at|date:"d M, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <h5>Reason for Leave</h5>
+                    <p>{{ leave_request.reason|linebreaks }}</p>
+
+                    {% if leave_request.attachments.exists %}
+                        <hr>
+                        <h5>Attachments</h5>
+                        <ul class="list-group">
+                            {% for attachment in leave_request.attachments.all %}
+                                <li class="list-group-item">
+                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.file.name|cut:"leave_attachments/" }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if leave_request.rejection_reason %}
+                        <hr>
+                        <h5 class="text-danger">Rejection Reason</h5>
+                        <p>{{ leave_request.rejection_reason|linebreaks }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <h5>Approval History</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>Line Manager Approval:</strong> 
+                            {% if leave_request.line_manager_approval_date %}
+                                <span class="text-success">Approved on {{ leave_request.line_manager_approval_date|date:"d M, Y H:i" }}</span>
+                            {% elif leave_request.approval_level == 'Line Manager' and leave_request.status == 'Pending' %}
+                                <span class="text-warning">Pending</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>COO Approval:</strong> 
+                            {% if leave_request.coo_approval_date %}
+                                <span class="text-success">Approved on {{ leave_request.coo_approval_date|date:"d M, Y H:i" }}</span>
+                             {% elif leave_request.approval_level == 'COO' and leave_request.status == 'Pending' %}
+                                <span class="text-warning">Pending</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>CEO Approval:</strong> 
+                            {% if leave_request.ceo_approval_date %}
+                                <span class="text-success">Approved on {{ leave_request.ceo_approval_date|date:"d M, Y H:i" }}</span>
+                            {% elif leave_request.approval_level == 'CEO' and leave_request.status == 'Pending' %}
+                                <span class="text-warning">Pending</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'leave_records' %}" class="btn btn-secondary">Back to Records</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

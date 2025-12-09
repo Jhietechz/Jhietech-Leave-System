@@ -62,18 +62,13 @@ class LeaveRequestForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         trackers = kwargs.pop('trackers', None)
         super().__init__(*args, **kwargs)
-        
-        qs = LeaveType.objects.all()
-        if self.user and hasattr(self.user, 'profile'):
-            gender = self.user.profile.gender
-            if gender == 'M':
-                qs = qs.exclude(name__iexact='Maternity')
-            elif gender == 'F':
-                qs = qs.exclude(name__iexact='Paternity')
-        
-        self.fields['leave_type'].queryset = qs
-        
+
+        # The 'trackers' object is now correctly filtered by the view.
+        # We can derive the queryset and choices directly from it.
         if trackers:
+            leave_type_ids = [t.leave_type.id for t in trackers]
+            self.fields['leave_type'].queryset = LeaveType.objects.filter(id__in=leave_type_ids)
+            
             self.fields['leave_type'].widget.attrs.update({'class': 'form-select'})
             choices = [('', '---------')]
             for tracker in trackers:
@@ -81,6 +76,9 @@ class LeaveRequestForm(forms.ModelForm):
                     (tracker.leave_type.id, f"{tracker.leave_type.name} ({tracker.remaining_days} days remaining)")
                 )
             self.fields['leave_type'].choices = choices
+        else:
+            # Fallback if no trackers are passed.
+            self.fields['leave_type'].queryset = LeaveType.objects.none()
 
     def clean(self):
         cleaned_data = super().clean()

@@ -92,7 +92,11 @@
                         {% elif "paternity" in type %}badge-paternity
                         {% else %}badge-other{% endif %}
                     ">
-                        {{ req.leave_type.name }}
+                        {% if req.leave_type.name|lower == 'other' %}
+                            {{ req.other_leave_type|default:"Other (Not Specified)" }}
+                        {% else %}
+                            {{ req.leave_type.name }}
+                        {% endif %}
                     </span>
                     {% endwith %}
 
@@ -167,11 +171,13 @@
                     </h5>
 
                     <p><b>Department:</b> {{ req.user.profile.department }}</p>
-                    <p><b>Leave Type:</b> {{ req.leave_type.name }}</p>
-
-                    {% if req.custom_leave_type %}
-                        <p><b>Custom Type:</b> {{ req.custom_leave_type }}</p>
-                    {% endif %}
+                    <p><b>Leave Type:</b> 
+                        {% if req.leave_type.name|lower == 'other' %}
+                            {{ req.other_leave_type|default:"Other (Not Specified)" }}
+                        {% else %}
+                            {{ req.leave_type.name }}
+                        {% endif %}
+                    </p>
 
                     <p><b>Dates:</b> {{ req.start_date }} → {{ req.end_date }}</p>
                     <p><b>Days:</b> {{ req.total_days }}</p>
@@ -223,7 +229,7 @@
                         <div class="rejection-reason-container" id="rejectionReasonContainer{{ req.id }}" style="display: none;">
                             <textarea name="rejection_reason" class="form-control" placeholder="Please provide a reason for rejection..." required></textarea>
                         </div>
-                        <button type="button" class="btn btn-danger px-4" id="rejectBtn{{ req.id }}" onclick="handleRejectClick({{ req.id }})">
+                        <button type="button" class="btn btn-danger px-4" id="rejectBtn{{ req.id }}" onclick="handleRejectClick('{{ req.id }}')">
                             <i class="bi bi-x-circle"></i> Reject
                         </button>
                         <button type="submit" class="btn btn-danger px-4" id="confirmRejectBtn{{ req.id }}" style="display: none;">

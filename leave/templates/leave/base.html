@@ -256,6 +256,11 @@
                                 <i class="bi bi-check-square-fill"></i> Pending Approvals
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'leave_records' %}active{% endif %}" href="{% url 'leave_records' %}">
+                                <i class="bi bi-journal-text"></i> Leave Records
+                            </a>
+                        </li>
                         {% endif %}
                         {% if user.profile.role == 'Admin' %}
                         <li class="nav-item w-100 list-unstyled">
